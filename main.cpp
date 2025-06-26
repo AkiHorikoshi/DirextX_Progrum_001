@@ -1,25 +1,46 @@
+#include <sdkddkver.h>
+#define WIN32_LEANAND_MEAN
 #include <Windows.h>
-#include <sstream>
+#include "game_window.h"
+#include "direct3d.h"
+#include "polygon.h"
+#include "shader.h"
 
-constexpr char FILE_NAME[] = "texture.png";
 
+/*
+メイン
+*/
 int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int nCmdShow)
 {
-	std::stringstream ss;
+	HWND hWnd = GameWindow_Create(hInstance);
 
-	ss << "テクスチャファイル:" << FILE_NAME << "が読み込めませんでした";
 
-	int msgboxID = 0;
-	msgboxID = MessageBox(nullptr, ss.str().c_str(), "Window", MB_YESNOCANCEL | MB_ICONERROR | MB_DEFBUTTON1);
+	Direct3D_Initialize(hWnd);
+	Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
+	Polygon_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 
-	if (msgboxID == IDYES)
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	MSG msg;
+	while (GetMessage(&msg, nullptr, 0, 0))
 	{
-		MessageBox(nullptr, "OK", "OK", MB_OK);
-	}
-	else if (msgboxID == IDCANCEL)
-	{
-		MessageBox(nullptr, "CACEL", "CANCEL", MB_OK);
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+
+
+		Direct3D_Clear();
+
+		Polygon_Draw();
+		//Polygon_Draw2();
+
+		Direct3D_Present();
 	}
 
-	return 0;
+	Polygon_Finalize();
+	Shader_Finalize();
+	Direct3D_Finalize();
+
+
+	return (int)msg.wParam;
 }
